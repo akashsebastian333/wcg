@@ -12,34 +12,61 @@ import (
   "regexp"
 )
 
+var d []string
+
 func main() {
 
   if len(os.Args) <= 1 {
         fmt.Println("Usage:", os.Args[0], "domain.com")
         return
     }
-        
-
 
 
 
   domain := os.Args[1]
- 
+   
   Url := fmt.Sprintf("http://webcache.googleusercontent.com/search?q=cache:%s&strip=0&vwsrc=0", domain)
 
 
 // fecting links
 
-  fmt.Println("\n\nLinks\n\n")
+  fmt.Println("\n\n------Links------\n\n")
+  getting_urls_regx(Url) //first
   getting_links(Url)
 
 
 // fecting comments
-  fmt.Println("\n\nComments inside\n\n")
+  fmt.Println("\n\n------Comments inside------\n\n")
   getting_comments(Url)
+  
 
 
 }
+
+func getting_urls_regx(Url string) {
+  resp, err := http.Get(Url)
+  defer resp.Body.Close()
+  body, err := ioutil.ReadAll(resp.Body)
+  if err != nil {
+    log.Fatal("Error reading HTTP body. ", err)
+  }
+  re := regexp.MustCompile("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
+  links := re.FindAllString(string(body), -1)
+  if links == nil {
+    fmt.Println("Not Found")
+  } else {
+      for _, link := range links {
+        data := strings.Split(string(link), "\n")
+        for i := 0; i < len(data); i++ {
+          if strings.Contains(data[i], "support.google.com") || strings.Contains(data[i], "googleusercontent.com") || strings.Contains(data[i], "javascript:void"){
+            continue
+          }
+        d = append(d, data[i])
+        }
+    } 
+  } 
+}
+
 
 
 func getting_links(Url string){
@@ -47,7 +74,6 @@ func getting_links(Url string){
     if err != nil {
         log.Fatal(err)
     }
-  var d []string
     for _, v := range get_Tags(resp.Body) {
     data := strings.Split(string(v), "\n")
     for i := 0; i < len(data); i++ {
