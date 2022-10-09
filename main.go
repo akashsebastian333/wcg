@@ -95,7 +95,7 @@ func getting_links(Url string){
     }
 }
 
-
+// get commments
 func getting_comments(Url string) {
   resp, err := http.Get(Url)
   defer resp.Body.Close()
